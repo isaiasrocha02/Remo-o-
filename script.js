@@ -14,20 +14,14 @@ uploadInput.addEventListener('change', async (e) => {
     resultImg.classList.add('hidden');
     downloadBtn.classList.add('hidden');
 
-    const formData = new FormData();
-    formData.append('image', file);
-
     try {
-        // ⚠️ Chamada para SEU backend
-        const response = await fetch('/remove-bg', {
-            method: 'POST',
-            body: formData
+        const resultBlob = await window.removeBackground(file, {
+            output: {
+                format: 'image/png'
+            }
         });
 
-        if (!response.ok) throw new Error('Erro ao remover fundo');
-
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(resultBlob);
 
         resultImg.src = url;
         resultImg.classList.remove('hidden');
@@ -37,7 +31,8 @@ uploadInput.addEventListener('change', async (e) => {
         downloadBtn.classList.remove('hidden');
 
     } catch (err) {
-        alert(err.message);
+        alert('Erro ao processar a imagem');
+        console.error(err);
     } finally {
         loading.classList.add('hidden');
     }
