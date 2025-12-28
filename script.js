@@ -8,37 +8,41 @@ uploadInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // 1. Mostrar prévia da imagem original
-    const reader = new FileReader();
-    reader.onload = (event) => {
-        originalImg.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
+    // 1. Mostrar prévia da original
+    originalImg.src = URL.createObjectURL(file);
     
     // 2. Preparar Interface
     loading.classList.remove('hidden');
-    resultImg.src = "";
     resultImg.classList.add('hidden');
     downloadBtn.classList.add('hidden');
 
     try {
-        // 3. Chamar a biblioteca imgly (Função global disponível pelo bundle.js)
-        // O primeiro carregamento baixa os modelos de IA (~80MB)
-        const blob = await imglyRemoveBackground(file);
+        // CORREÇÃO AQUI: 
+        // No bundle atual, a função costuma estar dentro de imglyRemoveBackground.removeBackground
+        // ou diretamente como a própria variável imglyRemoveBackground se for uma função.
         
-        // 4. Exibir Resultado
+        let blob;
+        if (typeof imglyRemoveBackground === 'function') {
+            blob = await imglyRemoveBackground(file);
+        } else if (imglyRemoveBackground && typeof imglyRemoveBackground.removeBackground === 'function') {
+            blob = await imglyRemoveBackground.removeBackground(file);
+        } else {
+            throw new Error("Biblioteca não carregada corretamente.");
+        }
+        
+        // 3. Exibir Resultado
         const url = URL.createObjectURL(blob);
         resultImg.src = url;
         resultImg.classList.remove('hidden');
         
-        // 5. Configurar Download
+        // 4. Configurar Download
         downloadBtn.href = url;
-        downloadBtn.download = "imagem_sem_fundo.png";
+        downloadBtn.download = "sem-fundo.png";
         downloadBtn.classList.remove('hidden');
 
     } catch (error) {
         console.error("Erro detalhado:", error);
-        alert("Erro ao processar. Verifique o console (F12) para detalhes de segurança.");
+        alert("Erro: " + error.message);
     } finally {
         loading.classList.add('hidden');
     }
