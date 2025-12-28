@@ -8,41 +8,36 @@ uploadInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Mostrar prévia da original
     originalImg.src = URL.createObjectURL(file);
-    
+
     loading.classList.remove('hidden');
     resultImg.classList.add('hidden');
     downloadBtn.classList.add('hidden');
 
-    // FormData para enviar a imagem
     const formData = new FormData();
     formData.append('image', file);
 
     try {
-        // Usaremos uma API pública de remoção de fundo (ex: Remove.bg ou similar)
-        // Nota: Para fins de teste, você pode usar o remove.bg (requer API KEY gratuita)
-        const response = await fetch('https://api.remove.bg/v1.0/removebg', {
+        // ⚠️ Chamada para SEU backend
+        const response = await fetch('/remove-bg', {
             method: 'POST',
-            headers: {
-                'X-Api-Key': 'SUA_API_KEY_AQUI' // Cadastre-se em remove.bg e cole a chave aqui
-            },
             body: formData
         });
 
-        if (!response.ok) throw new Error("Falha na conexão com o servidor de IA");
+        if (!response.ok) throw new Error('Erro ao remover fundo');
 
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
-        
+
         resultImg.src = url;
         resultImg.classList.remove('hidden');
+
         downloadBtn.href = url;
-        downloadBtn.download = "resultado.png";
+        downloadBtn.download = 'imagem-sem-fundo.png';
         downloadBtn.classList.remove('hidden');
 
-    } catch (error) {
-        alert("Erro: " + error.message);
+    } catch (err) {
+        alert(err.message);
     } finally {
         loading.classList.add('hidden');
     }
